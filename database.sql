@@ -180,12 +180,12 @@ CREATE TABLE settings (
 -- ===================================================================
 -- SEED USERS
 -- ===================================================================
-INSERT INTO users (student_id, first_name, last_name, email, password, role, points) VALUES
-('ADMIN001', 'Athletics', 'Department', 'athletics@hau.edu.ph', 'admin123', 'admin', 100),
-('2021-001234', 'Juan', 'Dela Cruz', 'jdelacruz@hau.edu.ph', 'student123', 'student', 85),
-('2022-005678', 'Maria', 'Santos', 'msantos@hau.edu.ph', 'student123', 'student', 55),
-('2021-009012', 'Pedro', 'Reyes', 'preyes@hau.edu.ph', 'student123', 'student', 35),
-('2023-002345', 'Ana', 'Garcia', 'agarcia@hau.edu.ph', 'student123', 'student', 92);
+INSERT INTO users (student_id, first_name, last_name, email, password, role, points, points_status, status) VALUES
+('ADMIN001', 'Athletics', 'Department', 'athletics@hau.edu.ph', 'admin123', 'admin', 100, 'good', 'active'),
+('2021-001234', 'Juan', 'Dela Cruz', 'jdelacruz@hau.edu.ph', 'student123', 'student', 85, 'good', 'active'),
+('2022-005678', 'Maria', 'Santos', 'msantos@hau.edu.ph', 'student123', 'student', 55, 'warning', 'active'),
+('2021-009012', 'Pedro', 'Reyes', 'preyes@hau.edu.ph', 'student123', 'student', 35, 'restricted', 'suspended'),
+('2023-002345', 'Ana', 'Garcia', 'agarcia@hau.edu.ph', 'student123', 'student', 92, 'good', 'active');
 
 -- ===================================================================
 -- SEED CATEGORIES
@@ -198,7 +198,7 @@ INSERT INTO categories (name, description, icon, display_order) VALUES
 ('Training Gear', 'Stopwatches, Whistles, Markers', '⏱️', 5);
 
 -- ===================================================================
--- SEED EQUIPMENT
+-- SEED EQUIPMENT WITH IMAGE FILENAMES
 -- ===================================================================
 INSERT INTO equipment 
 (code, name, category_id, description, brand, size_info, image, quantity_total, quantity_available, location, condition_status, max_borrow_days, min_points_required)
