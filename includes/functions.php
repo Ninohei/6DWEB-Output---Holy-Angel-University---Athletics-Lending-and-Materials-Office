@@ -80,74 +80,10 @@ function getDaysLate($return_date, $due_date) {
  */
 function updateUserPoints($pdo, $user_id, $points_change, $reason, $action_type, $loan_id = null, $days_late = null, $processed_by = null) {
     try {
-        $pdo->beginTransaction();
-        
-        // Get current points
-        $stmt = $pdo->prepare("SELECT points FROM users WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-        $current_points = $stmt->fetchColumn();
-        
-        if ($current_points === false) {
-            throw new Exception("User not found");
-        }
-        
-        // Calculate new points (cap between 0 and POINTS_MAX)
-        $new_points = max(POINTS_MIN, min(POINTS_MAX, $current_points + $points_change));
-        
-        // Update user points
-        $stmt = $pdo->prepare("UPDATE users SET points = ? WHERE user_id = ?");
-        $stmt->execute([$new_points, $user_id]);
-        
-        // Update points status
-        $new_status = calculatePointsStatus($new_points);
-        $stmt = $pdo->prepare("UPDATE users SET points_status = ? WHERE user_id = ?");
-        $stmt->execute([$new_status, $user_id]);
-        
-        // Auto-suspend if restricted
-        if ($new_status == 'restricted') {
-            $stmt = $pdo->prepare("
-                UPDATE users 
-                SET status = 'suspended', 
-                    suspension_reason = 'Points dropped below 40' 
-                WHERE user_id = ?
-            ");
-            $stmt->execute([$user_id]);
-        }
-        
-        // Remove suspension if improved
-        if ($new_status != 'restricted' && $current_points <= POINTS_RESTRICTED_MAX) {
-            $stmt = $pdo->prepare("
-                UPDATE users 
-                SET status = 'active', 
-                    suspended_until = NULL, 
-                    suspension_reason = NULL 
-                WHERE user_id = ?
-            ");
-            $stmt->execute([$user_id]);
-        }
-        
-        // Record in points history
-        $stmt = $pdo->prepare("
-            INSERT INTO points_history 
-            (user_id, loan_id, points_change, points_after, reason, action_type, days_late, processed_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-        $stmt->execute([
-            $user_id,
-            $loan_id,
-            $points_change,
-            $new_points,
-            $reason,
-            $action_type,
-            $days_late,
-            $processed_by
-        ]);
-        
-        $pdo->commit();
         return $new_points;
         
     } catch (Exception $e) {
-        $pdo->rollBack();
+        // REMOVE: $pdo->rollBack();
         error_log("Points update failed: " . $e->getMessage());
         return false;
     }
