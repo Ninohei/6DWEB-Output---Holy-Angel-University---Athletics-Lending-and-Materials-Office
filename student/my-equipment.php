@@ -95,6 +95,13 @@ $page_title = 'My Equipment';
             <h2 class="card-title">Active Loans</h2>
         </div>
         <div class="card-body">
+            <div class="loan-instructions">
+                <div class="loan-instructions-icon">↩</div>
+                <div class="loan-instructions-text">
+                    Return items at the <strong>Athletics Office</strong> and present your <strong>School ID</strong> for verification.
+                    <span class="loan-instructions-muted">Return on or before the due date to avoid penalties.</span>
+                </div>
+            </div>
             <?php if (empty($active_loans)): ?>
                 <div class="empty-state">
                     <div class="empty-state-message">No active loans</div>

@@ -12,6 +12,9 @@ $user_id = $_SESSION['user_id'];
 $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
+if ($user) {
+    $user['computed_year_level'] = getYearLevelFromEnrollmentDate($user['enrollment_date'] ?? null);
+}
 
 // Get points history
 $stmt = $pdo->prepare("
@@ -39,21 +42,21 @@ $page_title = 'My Account';
 <body>
     <?php include '../includes/header.php'; ?>
     <?php include '../includes/nav.php'; ?>
-    
+
     <div class="main-content">
         <div class="breadcrumb">
             <a href="dashboard.php">Home</a> / <?php echo $page_title; ?>
         </div>
-        
+
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
         <?php endif; ?>
-        
+
         <div class="page-header">
             <h1 class="page-title">My Account</h1>
             <p class="page-subtitle">View your profile and points information</p>
         </div>
-        
+
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
             <!-- Profile Card -->
             <div>
@@ -71,38 +74,42 @@ $page_title = 'My Account';
                                 <?php echo ucfirst($user['role']); ?>
                             </p>
                         </div>
-                        
+
                         <table style="width: 100%; font-size: 14px;">
                             <tr>
-                                <td style="padding: 8px 0; color: #666;"><strong>Student ID:</strong></td>
-                                <td style="padding: 8px 0;"><?php echo htmlspecialchars($user['student_id']); ?></td>
+                                <td class="profile-label" style="padding: 8px 0; color: #666;"><strong>Student ID:</strong></td>
+                                <td class="profile-value" style="padding: 8px 0;"><?php echo htmlspecialchars($user['student_id']); ?></td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px 0; color: #666;"><strong>Email:</strong></td>
-                                <td style="padding: 8px 0;"><?php echo htmlspecialchars($user['email']); ?></td>
+                                <td class="profile-label" style="padding: 8px 0; color: #666;"><strong>Email:</strong></td>
+                                <td class="profile-value" style="padding: 8px 0;"><?php echo htmlspecialchars($user['email']); ?></td>
                             </tr>
                             <?php if ($user['phone']): ?>
                             <tr>
-                                <td style="padding: 8px 0; color: #666;"><strong>Phone:</strong></td>
-                                <td style="padding: 8px 0;"><?php echo htmlspecialchars($user['phone']); ?></td>
+                                <td class="profile-label" style="padding: 8px 0; color: #666;"><strong>Phone:</strong></td>
+                                <td class="profile-value" style="padding: 8px 0;"><?php echo htmlspecialchars((string)($user['phone'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                             </tr>
                             <?php endif; ?>
                             <tr>
-                                <td style="padding: 8px 0; color: #666;"><strong>Department:</strong></td>
-                                <td style="padding: 8px 0;"><?php echo htmlspecialchars($user['department'] ?: 'Not specified'); ?></td>
+                                <td class="profile-label" style="padding: 8px 0; color: #666;"><strong>Department:</strong></td>
+                                <td class="profile-value" style="padding: 8px 0;"><?php echo htmlspecialchars($user['department'] ?: 'Not specified'); ?></td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px 0; color: #666;"><strong>Year Level:</strong></td>
-                                <td style="padding: 8px 0;"><?php echo htmlspecialchars($user['year_level'] ?: 'Not specified'); ?></td>
+                                <td class="profile-label" style="padding: 8px 0; color: #666;"><strong>Year Level:</strong></td>
+                                <td class="profile-value" style="padding: 8px 0;"><?php echo htmlspecialchars($user['computed_year_level'] ?: 'Not specified'); ?></td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px 0; color: #666;"><strong>Member Since:</strong></td>
-                                <td style="padding: 8px 0;"><?php echo formatDate($user['created_at']); ?></td>
+                                <td class="profile-label" style="padding: 8px 0; color: #666;"><strong>Enrollment Date:</strong></td>
+                                <td class="profile-value" style="padding: 8px 0;"><?php echo !empty($user['enrollment_date']) ? formatDate($user['enrollment_date']) : 'Not specified'; ?></td>
+                            </tr>
+                            <tr>
+                                <td class="profile-label" style="padding: 8px 0; color: #666;"><strong>Member Since:</strong></td>
+                                <td class="profile-value" style="padding: 8px 0;"><?php echo formatDate($user['created_at']); ?></td>
                             </tr>
                         </table>
                     </div>
                 </div>
-                
+
                 <!-- Points Status Card -->
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
@@ -112,21 +119,21 @@ $page_title = 'My Account';
                         <div style="font-size: 72px; font-weight: bold; color: var(--hau-maroon); margin: 20px 0;">
                             <?php echo $user['points']; ?>
                         </div>
-                        
+
                         <div class="points-badge <?php echo 'status-' . $user['points_status']; ?>" style="font-size: 14px;">
                             <?php echo getPointsStatusIcon($user['points_status']); ?>
                             <?php echo ucfirst($user['points_status']); ?> Standing
                         </div>
-                        
+
                         <p style="margin-top: 15px; font-size: 13px; color: #666; line-height: 1.6;">
                             <?php echo getPointsStatusMessage($user['points_status']); ?>
                         </p>
-                        
+
                         <!-- Points Progress Bar -->
                         <div style="margin-top: 20px;">
                             <div style="background: #e9ecef; height: 10px; border-radius: 5px; overflow: hidden;">
-                                <div style="background: <?php 
-                                    echo $user['points'] >= 70 ? '#28a745' : ($user['points'] >= 40 ? '#ffc107' : '#dc3545'); 
+                                <div style="background: <?php
+                                    echo $user['points'] >= 70 ? '#28a745' : ($user['points'] >= 40 ? '#ffc107' : '#dc3545');
                                 ?>; height: 100%; width: <?php echo $user['points']; ?>%; transition: width 0.3s;"></div>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 11px; color: #999;">
@@ -136,12 +143,12 @@ $page_title = 'My Account';
                                 <span>100</span>
                             </div>
                         </div>
-                        
+
                         <?php if ($user['status'] == 'suspended'): ?>
                             <div class="alert alert-danger" style="margin-top: 20px; text-align: left;">
                                 <strong>Account Suspended</strong><br>
                                 <?php if ($user['suspension_reason']): ?>
-                                    <p style="margin: 5px 0 0 0;"><?php echo htmlspecialchars($user['suspension_reason']); ?></p>
+                                    <p style="margin: 5px 0 0 0;"><?php echo htmlspecialchars((string)($user['suspension_reason'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></p>
                                 <?php endif; ?>
                                 <?php if ($user['suspended_until']): ?>
                                     <p style="margin: 5px 0 0 0;">Until: <?php echo formatDate($user['suspended_until']); ?></p>
@@ -151,7 +158,7 @@ $page_title = 'My Account';
                     </div>
                 </div>
             </div>
-            
+
             <!-- Points History -->
             <div class="card">
                 <div class="card-header">
@@ -214,7 +221,7 @@ $page_title = 'My Account';
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <?php if (count($points_history) >= 50): ?>
                             <div style="text-align: center; margin-top: 15px; color: #666; font-size: 13px;">
                                 Showing most recent 50 transactions
@@ -224,27 +231,27 @@ $page_title = 'My Account';
                 </div>
             </div>
         </div>
-        
+
         <!-- Help Section -->
-        <div class="card" style="margin-top: 30px;">
+        <div class="card mt-30">
             <div class="card-header">
                 <h2 class="card-title">Understanding Points</h2>
             </div>
             <div class="card-body">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div class="points-guide">
                     <div>
-                        <h3 style="color: #28a745; margin-bottom: 10px;">✓ How to Earn Points</h3>
-                        <ul style="line-height: 2;">
+                        <h3 class="points-heading points-earn">✓ How to Earn Points</h3>
+                        <ul class="points-list">
                             <li>Return equipment on time: <strong>+2 points</strong></li>
                             <li>5 consecutive on-time returns: <strong>+5 bonus</strong></li>
                             <li>Clean semester (no violations): <strong>+10 points</strong></li>
                             <li>Return in better condition: <strong>+3 points</strong></li>
                         </ul>
                     </div>
-                    
+
                     <div>
-                        <h3 style="color: #dc3545; margin-bottom: 10px;">✗ Point Penalties</h3>
-                        <ul style="line-height: 2;">
+                        <h3 class="points-heading points-penalty">✗ Point Penalties</h3>
+                        <ul class="points-list">
                             <li>1 day late: <strong>-5 points</strong></li>
                             <li>2-3 days late: <strong>-10 points</strong></li>
                             <li>4-7 days late: <strong>-15 points</strong></li>
@@ -253,14 +260,14 @@ $page_title = 'My Account';
                         </ul>
                     </div>
                 </div>
-                
-                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+
+                <div class="points-tip">
                     <strong>💡 Tip:</strong> Keep your points above 70 to maintain full borrowing privileges and avoid restrictions!
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script src="../assets/js/main.js"></script>
 </body>
 </html>

@@ -45,17 +45,17 @@ $page_title = 'Borrowing History';
 <body>
     <?php include '../includes/header.php'; ?>
     <?php include '../includes/nav.php'; ?>
-    
+
     <div class="main-content">
         <div class="breadcrumb">
             <a href="dashboard.php">Home</a> / <?php echo $page_title; ?>
         </div>
-        
+
         <div class="page-header">
             <h1 class="page-title">Borrowing History</h1>
             <p class="page-subtitle">View your past equipment loans and requests</p>
         </div>
-        
+
         <!-- Past Loans -->
         <div class="card">
             <div class="card-header">
@@ -83,13 +83,13 @@ $page_title = 'Borrowing History';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($past_loans as $loan): 
+                                <?php foreach ($past_loans as $loan):
                                     $days_late = $loan['days_overdue'];
                                 ?>
                                     <tr>
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 10px;">
-                                                <img src="../assets/images/equipment/<?php echo $loan['image']; ?>" 
+                                                <img src="../assets/images/equipment/<?php echo $loan['image']; ?>"
                                                      alt="<?php echo htmlspecialchars($loan['name']); ?>"
                                                      style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"
                                                      onerror="this.src='../assets/images/default.png'">
@@ -119,7 +119,7 @@ $page_title = 'Borrowing History';
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <?php if (count($past_loans) >= 50): ?>
                         <div style="text-align: center; margin-top: 15px; color: #666; font-size: 13px;">
                             Showing most recent 50 loans
@@ -128,7 +128,7 @@ $page_title = 'Borrowing History';
                 <?php endif; ?>
             </div>
         </div>
-        
+
         <!-- Rejected Requests -->
         <?php if (!empty($rejected_requests)): ?>
         <div class="card">
@@ -151,7 +151,7 @@ $page_title = 'Borrowing History';
                                 <tr>
                                     <td>
                                         <div style="display: flex; align-items: center; gap: 10px;">
-                                            <img src="../assets/images/equipment/<?php echo $request['image']; ?>" 
+                                            <img src="../assets/images/equipment/<?php echo $request['image']; ?>"
                                                  alt="<?php echo htmlspecialchars($request['name']); ?>"
                                                  style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"
                                                  onerror="this.src='../assets/images/default.png'">
@@ -169,7 +169,7 @@ $page_title = 'Borrowing History';
             </div>
         </div>
         <?php endif; ?>
-        
+
         <!-- Summary Stats -->
         <div class="card">
             <div class="card-header">
@@ -190,23 +190,23 @@ $page_title = 'Borrowing History';
                 }
                 $on_time_percentage = $total_loans > 0 ? round(($on_time_returns / $total_loans) * 100) : 0;
                 ?>
-                
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                     <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
                         <div style="font-size: 36px; font-weight: bold; color: var(--hau-maroon);"><?php echo $total_loans; ?></div>
                         <div style="font-size: 14px; color: #666;">Total Loans</div>
                     </div>
-                    
+
                     <div style="text-align: center; padding: 20px; background: #d4edda; border-radius: 6px;">
                         <div style="font-size: 36px; font-weight: bold; color: #28a745;"><?php echo $on_time_returns; ?></div>
                         <div style="font-size: 14px; color: #155724;">On-Time Returns</div>
                     </div>
-                    
+
                     <div style="text-align: center; padding: 20px; background: #f8d7da; border-radius: 6px;">
                         <div style="font-size: 36px; font-weight: bold; color: #dc3545;"><?php echo $late_returns; ?></div>
                         <div style="font-size: 14px; color: #721c24;">Late Returns</div>
                     </div>
-                    
+
                     <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 6px;">
                         <div style="font-size: 36px; font-weight: bold; color: #856404;"><?php echo $on_time_percentage; ?>%</div>
                         <div style="font-size: 14px; color: #856404;">On-Time Rate</div>
@@ -215,7 +215,7 @@ $page_title = 'Borrowing History';
             </div>
         </div>
     </div>
-    
+
     <script src="../assets/js/main.js"></script>
 </body>
 </html>

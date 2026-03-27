@@ -13,7 +13,7 @@ checkOverdueLoans($pdo);
 // Get user stats
 $stmt = $pdo->prepare("
     SELECT COUNT(*) as active_loans
-    FROM loans 
+    FROM loans
     WHERE user_id = ? AND status IN ('active', 'overdue')
 ");
 $stmt->execute([$user_id]);
@@ -81,16 +81,19 @@ $page_title = 'Dashboard';
     <!-- Stats Cards -->
     <div class="stats-grid">
         <div class="stat-card">
+            <div class="stat-card-icon">📦</div>
             <div class="stat-card-value"><?php echo $stats['active_loans']; ?></div>
             <div class="stat-card-label">Active Loans</div>
         </div>
 
         <div class="stat-card">
+            <div class="stat-card-icon">⏳</div>
             <div class="stat-card-value"><?php echo count($pending_requests); ?></div>
             <div class="stat-card-label">Pending Requests</div>
         </div>
 
         <div class="stat-card" style="border-left-color: <?php echo $user_info['points'] >= 70 ? '#28a745' : ($user_info['points'] >= 40 ? '#ffc107' : '#dc3545'); ?>;">
+            <div class="stat-card-icon">⭐</div>
             <div class="stat-card-value"><?php echo $user_info['points']; ?></div>
             <div class="stat-card-label">Discipline Points</div>
         </div>
@@ -114,6 +117,13 @@ $page_title = 'Dashboard';
             <a href="my-equipment.php" class="btn btn-sm btn-secondary">View All</a>
         </div>
         <div class="card-body">
+            <div class="loan-instructions">
+                <div class="loan-instructions-icon">↩</div>
+                <div class="loan-instructions-text">
+                    Return items at the <strong>Athletics Office</strong> and present your <strong>School ID</strong> for verification.
+                    <span class="loan-instructions-muted">Return on or before the due date to avoid penalties.</span>
+                </div>
+            </div>
             <?php if (empty($active_loans)): ?>
                 <div class="empty-state">
                     <div class="empty-state-message">No active loans</div>
@@ -219,21 +229,6 @@ $page_title = 'Dashboard';
             </div>
         </div>
     <?php endif; ?>
-
-    <!-- Quick Actions -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Quick Actions</h2>
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <a href="browse.php" class="btn btn-primary btn-block">Browse Equipment</a>
-                <a href="my-equipment.php" class="btn btn-secondary btn-block">My Equipment</a>
-                <a href="history.php" class="btn btn-secondary btn-block">View History</a>
-                <a href="account.php" class="btn btn-secondary btn-block">My Account</a>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script src="../assets/js/main.js"></script>

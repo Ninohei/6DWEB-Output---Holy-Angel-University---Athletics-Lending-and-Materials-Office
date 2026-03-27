@@ -35,7 +35,7 @@ $borrow_check = canUserBorrow($pdo, $user_id, $equipment_id);
 
 // Check for existing pending request
 $stmt = $pdo->prepare("
-    SELECT * FROM requests 
+    SELECT * FROM requests
     WHERE user_id = ? AND equipment_id = ? AND status = 'pending'
 ");
 $stmt->execute([$user_id, $equipment_id]);
@@ -54,36 +54,36 @@ $page_title = htmlspecialchars($equipment['name']);
 <body>
     <?php include '../includes/header.php'; ?>
     <?php include '../includes/nav.php'; ?>
-    
+
     <div class="main-content">
         <div class="breadcrumb">
             <a href="dashboard.php">Home</a> / <a href="browse.php">Browse</a> / <?php echo $page_title; ?>
         </div>
-        
+
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
         <?php endif; ?>
-        
+
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alert alert-error"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
         <?php endif; ?>
-        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
             <!-- Equipment Details -->
             <div class="card">
                 <div class="card-body">
-                    <img src="../assets/images/equipment/<?php echo htmlspecialchars($equipment['image']); ?>" 
+                    <img src="../assets/images/equipment/<?php echo htmlspecialchars($equipment['image']); ?>"
                          alt="<?php echo htmlspecialchars($equipment['name']); ?>"
                          style="width: 100%; height: 400px; object-fit: cover; border-radius: 6px; margin-bottom: 20px;"
                          onerror="this.src='../assets/images/default.png'">
-                    
+
                     <h1 style="font-size: 28px; margin-bottom: 10px;"><?php echo htmlspecialchars($equipment['name']); ?></h1>
-                    
+
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <span class="badge-info"><?php echo $equipment['category_icon']; ?> <?php echo $equipment['category_name']; ?></span>
                         <span class="badge-secondary">Code: <?php echo htmlspecialchars($equipment['code']); ?></span>
                     </div>
-                    
+
                     <div style="margin: 20px 0;">
                         <?php if ($equipment['quantity_available'] > 0): ?>
                             <span class="status-badge available">
@@ -93,14 +93,15 @@ $page_title = htmlspecialchars($equipment['name']);
                             <span class="status-badge unavailable">✗ Currently Unavailable</span>
                         <?php endif; ?>
                     </div>
-                    
+
                     <h3 style="margin-top: 25px; margin-bottom: 10px;">Description</h3>
                     <p style="line-height: 1.6; color: #666;">
                         <?php echo nl2br(htmlspecialchars($equipment['description'] ?: 'No description available.')); ?>
                     </p>
-                    
+
                     <h3 style="margin-top: 25px; margin-bottom: 10px;">Specifications</h3>
-                    <table class="table">
+                    <div class="table-responsive">
+<table class="table">
                         <tr>
                             <td><strong>Brand:</strong></td>
                             <td><?php echo htmlspecialchars($equipment['brand'] ?: 'N/A'); ?></td>
@@ -115,7 +116,20 @@ $page_title = htmlspecialchars($equipment['name']);
                         </tr>
                         <tr>
                             <td><strong>Condition:</strong></td>
-                            <td><?php echo ucfirst($equipment['condition_status']); ?></td>
+<td>
+    <?php
+        $cs = strtolower(trim($equipment['condition_status'] ?? ''));
+        $badge = 'secondary';
+        if ($cs === 'excellent' || $cs === 'good' || $cs === 'new') {
+            $badge = 'success';
+        } elseif ($cs === 'fair' || $cs === 'used') {
+            $badge = 'warning';
+        } elseif ($cs === 'poor' || $cs === 'damaged' || $cs === 'broken') {
+            $badge = 'danger';
+        }
+    ?>
+    <span class="badge-<?php echo $badge; ?>"><?php echo ucfirst($equipment['condition_status']); ?></span>
+</td>
                         </tr>
                         <tr>
                             <td><strong>Max Borrow Days:</strong></td>
@@ -132,9 +146,10 @@ $page_title = htmlspecialchars($equipment['name']);
                         </tr>
                         <?php endif; ?>
                     </table>
+</div>
                 </div>
             </div>
-            
+
             <!-- Request Form -->
             <div>
                 <div class="card">
@@ -149,7 +164,7 @@ $page_title = htmlspecialchars($equipment['name']);
                                 Requested on: <?php echo formatDateTime($pending_request['request_date']); ?>
                             </div>
                             <a href="my-equipment.php" class="btn btn-secondary btn-block">View My Requests</a>
-                        
+
                         <?php elseif (!$borrow_check['can_borrow']): ?>
                             <div class="alert alert-error">
                                 <strong>Cannot Borrow</strong><br>
@@ -160,40 +175,40 @@ $page_title = htmlspecialchars($equipment['name']);
                                     Please visit the Athletics Office to resolve your account status.
                                 </p>
                             <?php endif; ?>
-                        
+
                         <?php else: ?>
                             <form method="POST" action="../actions/request-equipment.php" data-validate>
                                 <input type="hidden" name="equipment_id" value="<?php echo $equipment_id; ?>">
-                                
+
                                 <div class="form-group">
                                     <label class="form-label required">Pickup Date</label>
-                                    <input type="date" 
-                                           id="pickup-date" 
-                                           name="pickup_date" 
-                                           class="form-control" 
+                                    <input type="date"
+                                           id="pickup-date"
+                                           name="pickup_date"
+                                           class="form-control"
                                            data-max-days="<?php echo $equipment['max_borrow_days']; ?>"
                                            required>
                                     <span class="form-text">When will you pick up the equipment?</span>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label class="form-label required">Expected Return Date</label>
-                                    <input type="date" 
-                                           id="return-date" 
-                                           name="expected_return_date" 
-                                           class="form-control" 
+                                    <input type="date"
+                                           id="return-date"
+                                           name="expected_return_date"
+                                           class="form-control"
                                            required>
                                     <span class="form-text">Maximum: <?php echo $equipment['max_borrow_days']; ?> days</span>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label class="form-label">Purpose/Notes (Optional)</label>
-                                    <textarea name="student_notes" 
-                                              class="form-control" 
-                                              rows="3" 
+                                    <textarea name="student_notes"
+                                              class="form-control"
+                                              rows="3"
                                               placeholder="e.g., For basketball practice, PE class, etc."></textarea>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <div class="checkbox-group">
                                         <input type="checkbox" id="agreement-checkbox" required>
@@ -202,12 +217,12 @@ $page_title = htmlspecialchars($equipment['name']);
                                         </label>
                                     </div>
                                 </div>
-                                
+
                                 <button type="submit" class="btn btn-primary btn-block">
                                     Submit Request
                                 </button>
                             </form>
-                            
+
                             <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px; font-size: 13px;">
                                 <strong>📋 What happens next:</strong>
                                 <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
@@ -220,7 +235,7 @@ $page_title = htmlspecialchars($equipment['name']);
                         <?php endif; ?>
                     </div>
                 </div>
-                
+
                 <!-- Your Points Status -->
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
@@ -243,12 +258,12 @@ $page_title = htmlspecialchars($equipment['name']);
                 </div>
             </div>
         </div>
-        
+
         <div style="margin-top: 20px;">
             <a href="browse.php" class="btn btn-secondary">← Back to Browse</a>
         </div>
     </div>
-    
+
     <script src="../assets/js/main.js"></script>
 </body>
 </html>
