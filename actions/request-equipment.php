@@ -47,34 +47,8 @@ if ($return <= $pickup) {
     exit;
 }
 
-// Check if user can borrow
-$check = canUserBorrow($pdo, $user_id, $equipment_id);
-if (!$check['can_borrow']) {
-    $_SESSION['error'] = $check['reason'];
-    header('Location: ../student/details.php?id=' . $equipment_id);
-    exit;
-}
-
-// Check for duplicate pending requests
-$stmt = $pdo->prepare("
-    SELECT COUNT(*) FROM requests 
-    WHERE user_id = ? AND equipment_id = ? AND status = 'pending'
-");
-$stmt->execute([$user_id, $equipment_id]);
-if ($stmt->fetchColumn() > 0) {
-    $_SESSION['error'] = 'You already have a pending request for this equipment';
-    header('Location: ../student/details.php?id=' . $equipment_id);
-    exit;
-}
-
 try {
-    // Create request
-    $stmt = $pdo->prepare("
-        INSERT INTO requests 
-        (user_id, equipment_id, pickup_date, expected_return_date, student_notes)
-        VALUES (?, ?, ?, ?, ?)
-    ");
-    
+    $stmt = $pdo->prepare("CALL sp_create_request(?, ?, ?, ?, ?)");
     $stmt->execute([
         $user_id,
         $equipment_id,
@@ -82,19 +56,19 @@ try {
         $expected_return_date,
         $student_notes
     ]);
-    
-    // Send email notification to admins
-    $stmt = $pdo->prepare("
-        SELECT e.name, u.first_name, u.last_name 
-        FROM equipment e, users u 
-        WHERE e.equipment_id = ? AND u.user_id = ?
-    ");
-    $stmt->execute([$equipment_id, $user_id]);
-    $info = $stmt->fetch();
-    
-    $_SESSION['success'] = 'Request submitted successfully! Please wait for admin approval.';
+
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+
+    if (!$result || (int)$result['ok'] !== 1) {
+        $_SESSION['error'] = $result['message'] ?? 'Request failed. Please try again.';
+        header('Location: ../student/details.php?id=' . $equipment_id);
+        exit;
+    }
+
+    $_SESSION['success'] = $result['message'] ?? 'Request submitted successfully! Please wait for admin approval.';
     header('Location: ../student/my-equipment.php');
-    
+
 } catch (PDOException $e) {
     error_log("Request creation failed: " . $e->getMessage());
     $_SESSION['error'] = 'Request failed. Please try again.';

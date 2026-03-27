@@ -23,12 +23,12 @@ try {
     $stmt = $pdo->prepare("SELECT favorite_id FROM favorites WHERE user_id = ? AND equipment_id = ?");
     $stmt->execute([$user_id, $equipment_id]);
     $existing = $stmt->fetch();
-    
+
     if ($existing) {
         // Remove favorite
         $stmt = $pdo->prepare("DELETE FROM favorites WHERE user_id = ? AND equipment_id = ?");
         $stmt->execute([$user_id, $equipment_id]);
-        
+
         echo json_encode([
             'success' => true,
             'is_favorited' => false,
@@ -38,14 +38,14 @@ try {
         // Add favorite
         $stmt = $pdo->prepare("INSERT INTO favorites (user_id, equipment_id) VALUES (?, ?)");
         $stmt->execute([$user_id, $equipment_id]);
-        
+
         echo json_encode([
             'success' => true,
             'is_favorited' => true,
             'message' => 'Added to favorites'
         ]);
     }
-    
+
 } catch (PDOException $e) {
     error_log("Favorite toggle error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Action failed']);

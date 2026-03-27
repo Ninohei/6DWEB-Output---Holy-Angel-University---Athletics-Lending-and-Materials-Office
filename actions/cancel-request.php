@@ -20,29 +20,29 @@ if ($request_id <= 0) {
 
 try {
     $pdo->beginTransaction();
-    
+
     // Verify ownership and pending status
     $stmt = $pdo->prepare("
-        SELECT r.*, e.quantity_available 
+        SELECT r.*, e.quantity_available
         FROM requests r
         JOIN equipment e ON r.equipment_id = e.equipment_id
         WHERE r.request_id = ? AND r.user_id = ? AND r.status = 'pending'
     ");
     $stmt->execute([$request_id, $user_id]);
     $request = $stmt->fetch();
-    
+
     if (!$request) {
         throw new Exception('Request not found or cannot be cancelled');
     }
-    
+
     // Update request status
     $stmt = $pdo->prepare("UPDATE requests SET status = 'cancelled' WHERE request_id = ?");
     $stmt->execute([$request_id]);
-    
+
     $pdo->commit();
-    
+
     $_SESSION['success'] = 'Request cancelled successfully';
-    
+
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
